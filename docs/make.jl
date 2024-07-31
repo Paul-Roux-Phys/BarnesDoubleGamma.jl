@@ -5,7 +5,7 @@ DocMeta.setdocmeta!(BarnesDoubleGamma, :DocTestSetup, :(using BarnesDoubleGamma)
 
 makedocs(;
     modules=[BarnesDoubleGamma],
-    authors="Paul-Roux-Phys <paul.roux@phys.ens.fr> and contributors",
+    authors="Paul Roux",
     repo="https://github.com/Paul-Roux-Phys/BarnesDoubleGamma.jl/blob/{commit}{path}#{line}",
     sitename="BarnesDoubleGamma.jl",
     format=Documenter.HTML(;
