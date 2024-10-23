@@ -54,13 +54,13 @@ function log_Barnes_GN(N, z, τ)
 
     #compute the sum
     res = 0
-    res -= log(τ) + loggamma(z)
+    res -= log(τ) + loggamma(complex(z))
     res += convert_precision(modularcoeff_a(τ)*z/τ + modularcoeff_b(τ)*z^2/(2*τ^2), prec)
     for m in 1:N
         mτ = m*τ
         d = digamma(mτ)
         t = trigamma(mτ)
-        res += loggamma(mτ) - loggamma(z + mτ) + z*d + z^2 / 2 * t
+        res += loggamma(complex(mτ)) - loggamma(complex(z + mτ)) + z*d + z^2 / 2 * t
     end
     return res
 end
