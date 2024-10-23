@@ -1,7 +1,7 @@
 name = "BarnesDoubleGamma"
 uuid = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
 authors = ["Paul-Roux-Phys <paul.roux@phys.ens.fr> and contributors"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 ArbNumerics = "7e558dbc-694d-5a72-987c-6f4ebed21442"
