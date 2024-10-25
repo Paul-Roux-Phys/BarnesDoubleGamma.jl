@@ -50,7 +50,7 @@ polygamma(n, z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.polygamma(Arb
 """
     cotpi(x) = cot(π * x)
 """
-cotpi(x) = SF._cotpi(x)
+cotpi(x) = cospi(x) / sinpi(x)
 
 """Regularised digamma function"""
 function digamma_reg(z)
