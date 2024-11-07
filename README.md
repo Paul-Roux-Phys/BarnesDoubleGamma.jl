@@ -1,21 +1,23 @@
 # BarnesDoubleGamma
 
-This Julia package exports functions
-`log_barnesgamma`, `barnesgamma`
-that compute the values of the Barne's double gamma function as defined in [arXiv:2208.13879](https://arxiv.org/abs/2208.13876).
-It also exports the related functions
-`loggamma2`, `gamma2`,
-`log_doublegamma`, `double_gamma`,
-corresponding to the $\Gamma_2$ and $\Gamma_b$ functions of [this](https://en.wikipedia.org/wiki/Multiple_gamma_function) wikipedia article.
+This is a Julia package for computing double Gamma functions.
+For more information, please refer to [the documentation](https://paul-roux-phys.github.io/BarnesDoubleGamma.jl/stable/).
 
-All of these functions are available for real or complex argument, in standard or multiple precision (using BigFloat and Complex{BigFloat} arguments)
+## Installation
 
-The package also exports
-`loggamma`, `gamma`,
-`digamma_reg`,
-`trigamma`,
-`polygamma`
-functions that work for real or complex arguments in standard or multiple precision, by calling the appropriate functions from the `SpecialFunctions` package, or from the `ArbNumerics` package.
+To install this package, run
+
+```julia
+using Pkg; Pkg.add("BarnesDoubleGamma")
+```
+
+in a Julia script, or
+
+```julia-repl
+julia> ]add BarnesDoubleGamma
+```
+
+in a Julia REPL.
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Paul-Roux-Phys.github.io/BarnesDoubleGamma.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Paul-Roux-Phys.github.io/BarnesDoubleGamma.jl/dev/)
