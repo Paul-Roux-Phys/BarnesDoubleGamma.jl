@@ -17,8 +17,8 @@ Documenter.doctest(BarnesDoubleGamma)
         w = 1.42
         tol = 1e-8
         
-        v1 = doublegamma(w, β, tol)
-        v2 = doublegamma(w+β, β, tol)
+        v1 = doublegamma(w, β; tol=tol)
+        v2 = doublegamma(w+β, β; tol=tol)
         shift = sqrt(2π) * β^(β*w - 1//2)/gamma(β*w)
 
         @test isapprox(v2/v1, shift, rtol=1e-8)
