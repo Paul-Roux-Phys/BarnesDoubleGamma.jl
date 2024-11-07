@@ -27,19 +27,7 @@ makedocs(
     ]
 )
 
-deploydocs(
+deploydocs(;
     repo   = "https://github.com/Paul-Roux-Phys/BarnesDoubleGamma.jl",
     push_preview = true,
-    modules = [BarnesDoubleGamma],
-    format = Documenter.HTML(
-        repolink = "https://github.com/Paul-Roux-Phys/BarnesDoubleGamma.jl",
-        edit_link = :commit
-    ),
-    doctest = true,
-    pages = [
-        "Home" => "index.md",
-        "installation.md",
-        "gamma_functions.md",
-        "double_gamma.md"
-    ]
 )
