@@ -1,8 +1,61 @@
-function precision(z::Complex)
-    return precision(real(z))
+import SpecialFunctions: gamma, loggamma, digamma, trigamma
+# import ArbNumerics.lgamma as arb_loggamma
+import ArbNumerics: ArbComplex as ArbC
+import ArbNumerics.lgamma
+import ArbNumerics: gamma, digamma, polygamma
+
+# Extend gamma, loggamma
+gamma(z::Complex{BigFloat}) = Complex{BigFloat}(
+    gamma(ArbC(z, bits=precision(BigFloat)))
+) 
+loggamma(z::Complex{BigFloat}) = Complex{BigFloat}(
+    lgamma(ArbC(z, bits=precision(BigFloat)))
+)
+
+# use ArbNumerics.polygamma to compute trigamma in arbitrary precision.
+trigamma(z::Complex{BigFloat}) = Complex{BigFloat}(
+    polygamma(ArbC(1, bits=precision(BigFloat)), ArbC(z, bits=precision(BigFloat)))
+)
+trigamma(z::BigFloat) = real(trigamma(complex(z)))
+
+# Extend polygamma
+polygamma(n::Integer, z::Complex{BigFloat}) = Complex{BigFloat}(
+    polygamma(ArbC(n, bits=precision(BigFloat)), ArbC(z, bits=precision(BigFloat)))
+)
+
+# cotpi(x) = cot(π * x)
+cotpi(x) = cospi(x) / sinpi(x)
+
+"""
+    digamma_reg(z)
+
+Digamma function ``ψ(z)`` regularised at negative integers thanks to the formula
+
+```math
+ψ(1-z) - ψ(z) = π \\operatorname{cot}(πz)
+```
+
+# Examples
+
+```jldoctest
+julia> digamma_reg(-1)
+0.4227843350984672
+```
+"""
+function digamma_reg(z)
+    if real(z) > 0
+        return digamma(z)
+    elseif isreal(z) && real(z) < 0 && real(z)%1 == 0
+        return digamma(1-z)
+    else
+        return digamma(1-z) - oftype(z, π)*cotpi(z)
+    end
 end
 
-"""Convert to a standard precision number"""
+function precision(z::Complex; base=2)
+    return precision(real(z), base=base)
+end
+
 function convert_precision(x::Number, precision)
     if precision <= 53 # precision of Float64
         if isreal(x)
@@ -21,48 +74,8 @@ function convert_precision(x::Number, precision)
     end
 end
 
-"""Change the precision of x to precision"""
 macro convert_precision!(var, precision)
     quote
         $var = convert_precision($var, $precision)
     end |> esc
-end
-
-#=
- We create bindings to gamma, digamma, and polygamma functions in arbitrary precision
-=#
-for f in (:gamma, :digamma)
-    @eval $f(z::Union{Real, Complex{Float64}}) = SF.$f(z)
-    @eval $f(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.$f(ArbComplex(z, bits=precision(BigFloat))))
-end
-
-"""
-Trigamma function working with real and complex numbers in standard and arbitrary precision
-"""
-function trigamma(z) end
-trigamma(z::ComplexOrReal{Float64}) = SF.trigamma(z)
-trigamma(z::BigFloat) = BigFloat(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
-trigamma(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
-
-loggamma(z::Union{ComplexOrReal{Float64}, BigFloat}) = SF.loggamma(z)
-loggamma(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.lgamma(ArbComplex(z, bits=precision(BigFloat))))
-
-polygamma(n, z::Union{Real, Complex{Float64}}) = SF.polygamma(n, z)
-polygamma(n, z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.polygamma(ArbComplex(n, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
-
-
-"""
-    cotpi(x) = cot(π * x)
-"""
-cotpi(x) = cospi(x) / sinpi(x)
-
-"""Regularised digamma function"""
-function digamma_reg(z)
-    if real(z) > 0
-        return digamma(z)
-    elseif isreal(z) && real(z) < 0 && real(z)%1 == 0
-        return digamma(1-z)
-    else
-        return digamma(1-z) - oftype(z, π)*cotpi(z)
-    end
 end

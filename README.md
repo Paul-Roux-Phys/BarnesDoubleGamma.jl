@@ -4,7 +4,7 @@ This Julia package exports functions
 `log_barnesgamma`, `barnesgamma`
 that compute the values of the Barne's double gamma function as defined in [arXiv:2208.13879](https://arxiv.org/abs/2208.13876).
 It also exports the related functions
-`log_gamma2`, `gamma2`,
+`loggamma2`, `gamma2`,
 `log_doublegamma`, `double_gamma`,
 corresponding to the $\Gamma_2$ and $\Gamma_b$ functions of [this](https://en.wikipedia.org/wiki/Multiple_gamma_function) wikipedia article.
 

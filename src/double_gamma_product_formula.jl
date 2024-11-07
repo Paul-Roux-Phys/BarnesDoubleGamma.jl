@@ -65,12 +65,11 @@ function log_Barnes_GN(N, z, τ)
     return res
 end
 
-@memoize function factorial_big(n)::BigInt
+function factorial_big(n)::BigInt
     return factorial(big(n))
 end
 
-"""Polynomial in τ which is the coefficient of z^j in Pn"""
-@memoize function polynomial_Pn_coeff(n, j, τ)
+function polynomial_Pn_coeff(n, j, τ)
     if n == 1 && j == 0
         return 1//6
     elseif j >= n
@@ -103,48 +102,113 @@ function rest_RMN(M, N, z, τ)
 end
 
 """
-Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance.
-The tolerance is rather pessimistic, on tests I found that a tolerance of 1e-30 gave about
-40 correct digits for .
+    log_barnesdoublegamma(z, τ; tol = 10^(-precision(z)))
+
+Logarithm of Barne's G-function ``\\log(G(z; τ))``, up to a given tolerance.
+The tolerance is rather pessimistic. For efficiency, when using a high precision `z` it is
+recommended to set the tolerance to something lower than the precision of `z`.
+
+# Examples
+
+```jldoctest
+julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ)
+4.7036054521762405e-12
+
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ)
+0.293394920968626643183216869255154162603276161914057065216580158409738193128475
+```
 """
-function log_barnes_doublegamma(z, τ, tol)
+function log_barnesdoublegamma(z, τ, tol)
     d = -log(tol)/log(10)
     M = floor(Int, 0.8*log(10)/log(20)*d)
     N = 30*M
     return log_Barnes_GN(N, z, τ) + z^3*rest_RMN(M, N, z, τ)
 end
 
-function barnes_doublegamma(z, τ, tol)
-    return exp(log_barnes_doublegamma(z, τ, tol))
-end
+log_barnesdoublegamma(z::Union{Float64, ComplexF64}, τ::Number; tol=1e-16) =
+    log_barnesdoublegamma(z, τ, tol)
 
-function log_gamma2(w, β, tol)
+log_barnesdoublegamma(
+    z::Union{BigFloat, Complex{BigFloat}},
+    τ::Number;
+    tol=1/big"10"^(precision(z, base=10)/3)
+) = log_barnesdoublegamma(z, τ, tol)
+
+log_barnesdoublegamma(z::Real, τ::Real, tol) =
+    real(log_barnesdoublegamma(complex(z), complex(τ), tol))
+
+log_barnesdoublegamma(z::Number, τ::Number) = log_barnesdoublegamma(float(z), float(τ))
+
+"""
+    barnesdoublegamma(z, τ; tol=10^(-precision(z)))
+
+Barne's G-function ``G(z, τ)``, up to a given tolerance.
+For efficiency, when using a high precision `z` it is
+recommended to set the tolerance to something lower than the precision of `z`.
+
+# Examples
+
+```jldoctest
+julia> z = big"1"; τ = sqrt(big"3"); barnesdoublegamma(z, τ)
+0.9999999999999999999999999999999999999999999345543169494792740822465202042518853
+
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
+1.340972263940081256497568500074283394055091669857109294097794355305731639439863
+
+julia> z = big(sqrt(3)); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
+1.488928335365086422942328604671778776079655470648475974888882080914824321973775
+```
+
+"""
+barnesdoublegamma(z, τ, tol) =
+    exp(log_barnesdoublegamma(z, τ, tol))
+
+barnesdoublegamma(z, τ) = exp(log_barnesdoublegamma(z, τ))
+
+"""
+    loggamma2(w, β; tol=10^(-precision(z)))
+
+Logarithm of the ``Γ_2(w, β)`` function.
+For efficiency, when using a high precision `w` it is
+recommended to set the tolerance to something lower than the precision of `w`.
+"""
+function loggamma2(w, β; tol=missing)
     β = real(β-1/β) < 0 ? 1/β : β # change β -> 1/β if needed
-    return w/(2*β)*log(2*oftype(β, π)) + (w/2*(w-β-1/β)+1)*log(β) - log_barnes_doublegamma(w/β, 1/β^2, tol)
-end
-
-function gamma2(w, β, tol)
-    return exp(log_gamma2(w, β, tol))
+    if tol !== missing
+        l = log_barnesdoublegamma(w / β, 1 / β^2, tol)
+    else
+        l = log_barnesdoublegamma(w / β, 1 / β^2)
+    end
+    return w/(2*β)*log(2*oftype(β, π)) + (w/2*(w-β-1/β)+1)*log(β) - l
 end
 
 """
-        logdoublegamma(w, β, tol) = Γ_β(w)
+    gamma2(w, β; tol=10^(-precision(z)))
 
-Compute the logarithm of the double gamma function Γ_β(w, β) as defined in
-[https://en.wikipedia.org/wiki/Multiple_gamma_function](Multiple Gamma function),
+``Γ_2(w, β)`` function.
+For efficiency, when using a high precision `z` it is
+recommended to set the tolerance to something lower than the precision of `z`.
+"""
+function gamma2(w, β; tol=missing)
+    return exp(loggamma2(w, β; tol=tol))
+end
+
+"""
+        logdoublegamma(w, β; tol=10^(-precision(z)))
+
+Compute the logarithm of the double gamma function ``Γ_β(w, β)``.
 with precision tol
 """
-function logdoublegamma(w, β, tol)
-    return log_gamma2(w, β, tol) - log_gamma2((β+1/β)/2, β, tol)
+function logdoublegamma(w, β; tol=missing)
+    return loggamma2(w, β, tol=tol) - loggamma2((β+1/β)/2, β, tol=tol)
 end
 
 """
-        doublegamma(w, β, tol)
+        doublegamma(w, β; tol=10^(-precision(z)))
 
-Compute the double gamma function Γ_β(w)as defined in
-[https://en.wikipedia.org/wiki/Multiple_gamma_function](Multiple Gamma function),
+Compute the double gamma function ``Γ_β(w)``.
 with precision tol
 """
-function doublegamma(w, β, tol)
-    exp(logdoublegamma(w, β, tol))
+function doublegamma(w, β; tol=missing)
+    exp(logdoublegamma(w, β, tol=tol))
 end

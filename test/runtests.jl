@@ -1,11 +1,19 @@
 using BarnesDoubleGamma,
-     Test
-#     LinearAlgebra
-# import IterTools: product
+    Test,
+    Documenter
+
+# tests included in docs
+DocMeta.setdocmeta!(
+    BarnesDoubleGamma,
+    :DocTestSetup,
+    :(using BarnesDoubleGamma),
+    recursive=true
+)
+Documenter.doctest(BarnesDoubleGamma)
 
 @testset "BarnesDoubleGamma.jl" begin
     @testset "shift equations" begin
-	β = 0.74
+        β = 0.74
         w = 1.42
         tol = 1e-8
         
