@@ -183,31 +183,29 @@ function loggamma2(w, β; tol=missing)
 end
 
 """
-    gamma2(w, β; tol=10^(-precision(z)))
+    gamma2(w, β; tol=10^(-precision(w)))
 
 ``Γ_2(w, β)`` function.
-For efficiency, when using a high precision `z` it is
-recommended to set the tolerance to something lower than the precision of `z`.
+For efficiency, when using a high precision `w` it is
+recommended to set the tolerance to something lower than the precision of `w`.
 """
 function gamma2(w, β; tol=missing)
     return exp(loggamma2(w, β; tol=tol))
 end
 
 """
-        logdoublegamma(w, β; tol=10^(-precision(z)))
+        logdoublegamma(w, β; tol=10^(-precision(w)))
 
-Compute the logarithm of the double gamma function ``Γ_β(w, β)``.
-with precision tol
+Compute the logarithm of the double gamma function ``Γ_β(w, β)`` with precision tol
 """
 function logdoublegamma(w, β; tol=missing)
     return loggamma2(w, β, tol=tol) - loggamma2((β+1/β)/2, β, tol=tol)
 end
 
 """
-        doublegamma(w, β; tol=10^(-precision(z)))
+        doublegamma(w, β; tol=10^(-precision(w)))
 
-Compute the double gamma function ``Γ_β(w)``.
-with precision tol
+Compute the double gamma function ``Γ_β(w)`` with precision tol
 """
 function doublegamma(w, β; tol=missing)
     exp(logdoublegamma(w, β, tol=tol))
