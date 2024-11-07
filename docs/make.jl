@@ -28,6 +28,5 @@ makedocs(
 )
 
 deploydocs(;
-    repo   = "https://github.com/Paul-Roux-Phys/BarnesDoubleGamma.jl",
-    push_preview = true,
+    repo   = "https://github.com/Paul-Roux-Phys/BarnesDoubleGamma.jl"
 )
