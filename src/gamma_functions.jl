@@ -36,6 +36,10 @@ for f in (:gamma, :digamma)
     @eval $f(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.$f(ArbComplex(z, bits=precision(BigFloat))))
 end
 
+"""
+Trigamma function working with real and complex numbers in standard and arbitrary precision
+"""
+function trigamma(z) end
 trigamma(z::ComplexOrReal{Float64}) = SF.trigamma(z)
 trigamma(z::BigFloat) = BigFloat(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
 trigamma(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
