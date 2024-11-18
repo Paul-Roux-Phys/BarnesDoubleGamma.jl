@@ -22,7 +22,7 @@ and
 
 $$\tilde{a}(\tau)=a(\tau)-\gamma \tau=\frac{\tau}{2} \ln (2 \pi \tau)+\frac{1}{2} \ln (\tau)-\tau C(\tau), \quad \tilde{b}(\tau)=b(\tau)+\frac{\pi^2 \tau^2}{6}=-\tau \ln (\tau)-\tau^2 D(\tau),$$
 
-$\Gamma$ and $\psi$ are the Euler gamma and digamma function:
+the functions $\Gamma$ and $\psi$ are the Euler gamma and digamma function:
 
 $$\psi(z) = (\log \Gamma)'(z).$$
 

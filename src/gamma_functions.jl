@@ -4,12 +4,17 @@ import ArbNumerics: ArbComplex as ArbC
 import ArbNumerics.lgamma
 import ArbNumerics: gamma, digamma, polygamma
 
-# Extend gamma, loggamma
+# Extend gamma, loggamma, trigamma
 gamma(z::Complex{BigFloat}) = Complex{BigFloat}(
     gamma(ArbC(z, bits=precision(BigFloat)))
 ) 
 loggamma(z::Complex{BigFloat}) = Complex{BigFloat}(
     lgamma(ArbC(z, bits=precision(BigFloat)))
+)
+
+# Extend digamma
+digamma(z::Complex{BigFloat}) = Complex{BigFloat}(
+    digamma(ArbC(z, bits=precision(BigFloat)))
 )
 
 # use ArbNumerics.polygamma to compute trigamma in arbitrary precision.
