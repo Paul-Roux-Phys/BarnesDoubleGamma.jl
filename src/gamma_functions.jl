@@ -50,7 +50,7 @@ julia> digamma_reg(-1)
 function digamma_reg(z)
     if real(z) > 0
         return digamma(z)
-    elseif isreal(z) && real(z) < 0 && real(z)%1 == 0
+    elseif isreal(z) && real(z) <= 0 && real(z)%1 == 0
         return digamma(1-z)
     else
         return digamma(1-z) - oftype(z, π)*cotpi(z)
