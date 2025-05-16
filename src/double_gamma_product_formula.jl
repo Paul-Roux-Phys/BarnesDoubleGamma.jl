@@ -96,22 +96,6 @@ function rest_RMN(M, N, z, τ::T)::T where {T}
     return -inv(τ)*evalpoly(inv(-N*τ), coeffs_sum)
 end
 
-"""
-    log_barnesdoublegamma(z, τ)
-
-Logarithm of Barne's G-function ``\\log(G(z; τ))``.
-Can get very expensive for high precision.
-
-# Examples
-
-```jldoctest
-julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ)
--3.5564013784958066e-9
-
-julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ)
-0.293394920968626643183216869255154162603276275448888004730390602371621786480874
-```
-"""
 function _log_barnesdoublegamma(z::Complex, τ::Complex)
     d = precision(real(τ))
     M = floor(Int, 0.5/log(20)*d)
@@ -128,6 +112,22 @@ _log_barnesdoublegamma(z, τ::Complex) =
 _log_barnesdoublegamma(z::Complex, τ) =
     _log_barnesdoublegamma(complex(z), complex(τ))
 
+"""
+    log_barnesdoublegamma(z, τ)
+
+Logarithm of Barne's G-function ``\\log(G(z; τ))``.
+Can get very expensive for high precision.
+
+# Examples
+
+```jldoctest
+julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ)
+-3.5564013784958066e-9
+
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ)
+0.293394920968626643183216869255154162603276275448888004730390602371621786480874
+```
+"""
 log_barnesdoublegamma(z::Number, τ::Number) = _log_barnesdoublegamma(float(z), float(τ))
 
 """
