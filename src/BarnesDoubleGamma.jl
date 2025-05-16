@@ -1,14 +1,17 @@
 module BarnesDoubleGamma
 
-using  Memoization # cache intermediary results
-using  QuadGK      # numerical integration
+using  Memoization, # cache intermediary results
+    QuadGK, # numerical integration
+    DoubleFloats # 30-digit floats, fast.
+
 import Base: precision
 
-export loggamma,
-       gamma,
-       trigamma,
-       polygamma,      # generic-typed gamma functions
-       digamma_reg
+export Double64, ComplexDF64,
+    loggamma,
+    gamma,
+    trigamma,
+    polygamma,      # generic-typed gamma functions
+    digamma_reg
 
 export log_barnesdoublegamma,
        barnesdoublegamma,
@@ -16,9 +19,6 @@ export log_barnesdoublegamma,
        gamma2,
        logdoublegamma,
        doublegamma
-
-const ComplexOrReal{T} = Union{T, Complex{T}}
-const ComplexOrRealFloat = Union{ComplexOrReal{Float64}, ComplexOrReal{BigFloat}}
 
 include("gamma_functions.jl")
 include("double_gamma_product_formula.jl")

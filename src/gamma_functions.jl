@@ -1,32 +1,54 @@
-import SpecialFunctions: gamma, loggamma, digamma, trigamma
-# import ArbNumerics.lgamma as arb_loggamma
-import ArbNumerics: ArbComplex as ArbC
-import ArbNumerics.lgamma
-import ArbNumerics: gamma, digamma, polygamma
+using SpecialFunctions,
+    Arblib,
+    DoubleFloats
 
-# Extend gamma, loggamma, trigamma
-gamma(z::Complex{BigFloat}) = Complex{BigFloat}(
-    gamma(ArbC(z, bits=precision(BigFloat)))
-) 
-loggamma(z::Complex{BigFloat}) = Complex{BigFloat}(
-    lgamma(ArbC(z, bits=precision(BigFloat)))
-)
+import SpecialFunctions: loggamma, gamma, digamma, trigamma, polygamma
 
-# Extend digamma
-digamma(z::Complex{BigFloat}) = Complex{BigFloat}(
-    digamma(ArbC(z, bits=precision(BigFloat)))
-)
+Base.precision(z::Complex; base=2) = precision(real(z), base=base)
 
-# use ArbNumerics.polygamma to compute trigamma in arbitrary precision.
-trigamma(z::Complex{BigFloat}) = Complex{BigFloat}(
-    polygamma(ArbC(1, bits=precision(BigFloat)), ArbC(z, bits=precision(BigFloat)))
-)
-trigamma(z::BigFloat) = real(trigamma(complex(z)))
+for func in (:loggamma, :digamma, :trigamma)
+    @eval function SpecialFunctions.$func(z::Double64)
+        p = precision(z)
+        az = Arb(big(z), prec=p)
+        res = SpecialFunctions.$func(az)
+        return Double64(big(res))
+    end
+end
 
-# Extend polygamma
-polygamma(n::Integer, z::Complex{BigFloat}) = Complex{BigFloat}(
-    polygamma(ArbC(n, bits=precision(BigFloat)), ArbC(z, bits=precision(BigFloat)))
-)
+for func in (:loggamma, :gamma, :digamma, :trigamma)
+    @eval function SpecialFunctions.$func(z::Complex{BigFloat})
+        az = Acb(z, prec=precision(z))
+        res = SpecialFunctions.$func(az)
+        return Complex{BigFloat}(real(res), imag(res))
+    end
+    @eval function SpecialFunctions.$func(z::ComplexDF64)
+        p = precision(z)
+        az = Acb(complex(big(real(z)), imag(z)), prec=p)
+        res = SpecialFunctions.$func(az)
+        return ComplexDF64(big(real(res)), big(imag(res)))
+    end
+end
+
+function SpecialFunctions.polygamma(n::Integer, z::Complex{BigFloat})
+    az = Acb(z, prec=precision(z))
+    an = Acb(n, prec=precision(z))
+    res = SpecialFunctions.polygamma(an, az)
+    return Complex{BigFloat}(real(res), imag(res))
+end
+
+function SpecialFunctions.polygamma(n::Integer, z::ComplexDF64)
+    az = Acb(big(z), prec=precision(z))
+    an = Acb(n, prec=precision(z))
+    res = SpecialFunctions.polygamma(an, az)
+    return ComplexDF64(real(res), imag(res))
+end
+
+function SpecialFunctions.polygamma(n::Complex, z::Complex)
+    az = Acb(z, prec=precision(z))
+    an = Acb(n, prec=precision(z))
+    res = SpecialFunctions.polygamma(an, az)
+    return Complex{typeof(real(z))}(real(res), imag(res))
+end
 
 # cotpi(x) = cot(π * x)
 cotpi(x) = cospi(x) / sinpi(x)
@@ -55,32 +77,4 @@ function digamma_reg(z)
     else
         return digamma(1-z) - oftype(z, π)*cotpi(z)
     end
-end
-
-function precision(z::Complex; base=2)
-    return precision(real(z), base=base)
-end
-
-function convert_precision(x::Number, precision)
-    if precision <= 53 # precision of Float64
-        if isreal(x)
-            return Float64(Real(x))
-        else
-            return Complex{Float64}(x)
-        end
-    else # precision > 53
-        if isreal(x)
-            return BigFloat(Real(x), precision=precision)
-        else
-            r = BigFloat(real(x), precision=precision)
-            i = BigFloat(imag(x), precision=precision)
-            return Complex{BigFloat}(r, i)
-        end
-    end
-end
-
-macro convert_precision!(var, precision)
-    quote
-        $var = convert_precision($var, $precision)
-    end |> esc
 end
