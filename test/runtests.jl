@@ -3,13 +3,13 @@ using BarnesDoubleGamma,
     Documenter
 
 # tests included in docs
-# DocMeta.setdocmeta!(
-#     BarnesDoubleGamma,
-#     :DocTestSetup,
-#     :(using BarnesDoubleGamma),
-#     recursive=true
-# )
-# Documenter.doctest(BarnesDoubleGamma)
+DocMeta.setdocmeta!(
+    BarnesDoubleGamma,
+    :DocTestSetup,
+    :(using BarnesDoubleGamma),
+    recursive=true
+)
+Documenter.doctest(BarnesDoubleGamma)
 
 @testset "BarnesDoubleGamma.jl" begin
     @testset "digamma_reg" begin
