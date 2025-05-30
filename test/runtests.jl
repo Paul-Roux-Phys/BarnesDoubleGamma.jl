@@ -21,13 +21,22 @@ Documenter.doctest(BarnesDoubleGamma)
 
     @testset "BDoubleGamma" begin
         bdg = BDoubleGamma(sqrt(3))
+        lbdg = bdg.logBDG
         bdg_big = BDoubleGamma(sqrt(big(3)))
+        lbdg_big = bdg_big.logBDG
         
         @test bdg(1) ≈ 1
+        @test real(lbdg(1)) < 1e-8
         @test bdg_big(big"1.") ≈ 1
 
         @test barnesdoublegamma(1, sqrt(3)) ≈ 1
-        @test barnesdoublegamma(big(1), sqrt(big(3))) ≊ 1
+        @test barnesdoublegamma(big(1), sqrt(big(3))) ≈ 1
+
+        log_exact_val(τ) = (τ-1)/2 * log(2oftype(τ, π)) - log(τ)/2
+        exact_val(τ) = (2oftype(τ, π))^((τ-1)/2)/sqrt(τ)
+
+        @test bdg(sqrt(3)) ≈ exact_val(sqrt(3))
+        @test bdg_big(sqrt(big(3))) ≈ exact_val(sqrt(big(3)))
     end
 
     @testset "double gamma function" begin

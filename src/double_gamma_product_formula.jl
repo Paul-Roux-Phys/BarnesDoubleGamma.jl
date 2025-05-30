@@ -16,7 +16,7 @@ struct BDGCache{T}
     digammas::Vector{T}
     trigammas::Vector{T}
     factorials::Vector{BigInt}
-    polynomial_Pns::Matrix{T}
+    polynomial_Pns::Vector{Vector{T}}
     modularcoeff_a::T
     modularcoeff_b::T
 end
@@ -61,7 +61,6 @@ end
 LogBDoubleGamma(τ::T) where {T} = LogBDoubleGamma(BDGCache(τ))
 (f::LogBDoubleGamma)(z::Complex) = _log_barnesdoublegamma(z, f.cache)
 (f::LogBDoubleGamma)(x::Real) = f(complex(x))
-(f::LogBDoubleGamma{T})(x::Real) where {T<:Real} = real(f(complex(x)))
 (f::LogBDoubleGamma)(x::Union{Int, BigInt, Complex{Int}, Complex{BigInt}}) = f(float(x))
 
 struct BDoubleGamma{T}
@@ -187,48 +186,88 @@ function log_Barnes_GN(N, z, cache::BDGCache{T}) where {T}
     r -= cache.logτ + loggamma(z)
     r += cache.modularcoeff_a * z / cache.τ + cache.modularcoeff_b * z^2 / (2 * τ^2)
     for m in 1:N
-        mτ = m * τ
         d = cache.digammas[m]
         t = cache.trigammas[m]
-        r += cache.loggammas[m] - loggamma(z + mτ) + z * d + z^2 / 2 * t
+        r += cache.loggammas[m] - loggamma(z + m * τ) + z * d + z^2 / 2 * t
     end
     return r
 end
 
-function polynomial_Pns(M, τ_pows::Vector{T}, τp1_pows, factorials)::Matrix{T} where {T}
-    coeffs = zeros(T, M+1, M+1)
+function log_Barnes_GN_old(N, z, τ::T)::T where {T}
+    # keep only the minimum precision
+    #compute the sum
+    r = 0
+    r -= log(τ) + loggamma(complex(z))
+    r += modularcoeff_a(τ) * z / τ + modularcoeff_b(τ) * z^2 / (2 * τ^2)
+    for m in 1:N
+        mτ = m * τ
+        d = digamma(mτ)
+        t = trigamma(mτ)
+        r += loggamma(complex(mτ)) - loggamma(complex(z + mτ)) +
+             z * d + z^2 / 2 * t
+    end
+    return r
+end
+
+function polynomial_Pns(M, τ_pows::Vector{T}, τp1_pows, factorials)::Vector{Vector{T}} where {T}
+    coeffs = [zeros(T, n) for n in 1:M]
     τfactors = [
         (τp1_pows[k+2] - 1 - τ_pows[k+2]) /
         factorials[k + 2] / τ_pows[1]
         for k in 1:M
     ]
-    for n in 1:M+1
-        coeffs[n, n] = one(T)/factorials[n+1]
-        for j in 1:n-2
+    for n in 1:M
+        coeffs[n][n] = one(T)/factorials[n+2]
+        for j in 0:n-2
             acc = zero(T)
             for k in 1:(n-1-j)
-                acc += τfactors[k] * coeffs[n - k, j+1]
+                acc += τfactors[k] * coeffs[n - k][j+1]
             end
-            coeffs[n, j+1] = -acc
+            coeffs[n][j+1] = -acc
         end
     end
     return coeffs
 end
 
-function rest_RMN(M, N, z, cache::BDGCache{T})::T where {T}
-    τ = cache.τ
+factorial_big(n) = if n < 21 factorial(n) else factorial(big(n)) end
+
+function polynomial_Pn_coeff(n, j, τ::T)::T where {T}
+    n == 1 && j == 0 && return one(τ)/6
+    j >= n && return zero(τ)
+    j == n-1 && return one(τ)/(factorial_big(n+2))
+    return -sum(
+        ((1 + τ)^(k + 2) - 1 - τ^(k + 2)) / factorial_big(k + 2) / τ *
+        polynomial_Pn_coeff(n - k, j, τ)
+        for k in 1:n-1-j
+    )
+end
+
+polynomial_Pn(n, τ) = [polynomial_Pn_coeff(n, j, τ) for j in 0:n-1]
+
+function rest_RMN(z, cache::BDGCache{T})::T where {T}
+    M, N = cache.M, cache.N
+    mτ = - cache.τ
     coeffs_sum = zeros(typeof(z), M + 1)
-    coeffs_sum[2] = evalpoly(z, cache.polynomial_Pns[2, :])
+    coeffs_sum[2] = evalpoly(z, cache.polynomial_Pns[1])
     for k in 2:M
-        coeffs_sum[k+1] = cache.factorials[k - 1] * evalpoly(z, cache.polynomial_Pns[k+1, :])
+        coeffs_sum[k+1] = cache.factorials[k - 1] * evalpoly(z, cache.polynomial_Pns[k])
     end
-    return -evalpoly(inv(-N * τ), coeffs_sum) / τ
+    return evalpoly(1 / (N * mτ), coeffs_sum) / mτ
+end
+
+function rest_RMN_old(M, N, z, τ::T)::T where {T}
+    mτ = -τ
+    p(k::Int) = evalpoly(z, polynomial_Pn(k, mτ))
+    coeffs_sum = vcat(0, [factorial_big(k-1) * p(k) for k in 1:M])
+    return -inv(τ)*evalpoly(inv(-N*τ), coeffs_sum)
 end
 
 function _log_barnesdoublegamma(z::Complex, cache::BDGCache)
     M, N = cache.M, cache.N
-    return log_Barnes_GN(N, z, cache) + z^3*rest_RMN(M, N, z, cache)
+    return log_Barnes_GN(N, z, cache) + z^3*rest_RMN(z, cache)
 end
+
+log_barnesdoublegamma_old(M, N, z, τ) = log_Barnes_GN_old(N, z, τ) + z^3 * rest_RMN_old(M, N, z, τ)
 
 """
     log_barnesdoublegamma(z, τ)
