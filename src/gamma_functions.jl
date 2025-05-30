@@ -6,7 +6,7 @@ for func in (:loggamma, :gamma, :digamma, :trigamma)
         res = SpecialFunctions.$func(az)
         return Complex{BigFloat}(real(res), imag(res))
     end
-    @eval SpecialFunctions.$func(z::Complex{BigInt}) = SpecialFunctions(float(z))
+    @eval SpecialFunctions.$func(z::Complex{BigInt}) = SpecialFunctions.$func(float(z))
 end
 
 function SpecialFunctions.polygamma(n::Integer, z::Complex{BigFloat})

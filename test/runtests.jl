@@ -26,8 +26,8 @@ Documenter.doctest(BarnesDoubleGamma)
         @test bdg(1) ≈ 1
         @test bdg_big(big"1.") ≈ 1
 
-        @test isapprox(barnesdoublegamma(1, sqrt(3)), 1)
-        @test isapprox(barnesdoublegamma(big(1), sqrt(big(3))), 1)
+        @test barnesdoublegamma(1, sqrt(3)) ≈ 1
+        @test barnesdoublegamma(big(1), sqrt(big(3))) ≊ 1
     end
 
     @testset "double gamma function" begin
