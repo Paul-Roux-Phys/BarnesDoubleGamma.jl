@@ -16,12 +16,12 @@ export loggamma,
     digamma_reg
 
 # Double Gamma functions
-export LogBDoubleGamma,
-       BDoubleGamma,
-       LogGamma2,
-       Gamma2,
-       LogDoubleGamma,
-       DoubleGamma
+export LogBDoubleGamma, log_barnesdoublegamma,
+       BDoubleGamma, barnesdoublegamma,
+       LogGamma2, loggamma2,
+       Gamma2, gamma2,
+       LogDoubleGamma, logdoublegamma,
+       DoubleGamma, doublegamma
 
 include("gamma_functions.jl")
 include("double_gamma_product_formula.jl")
