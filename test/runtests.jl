@@ -20,10 +20,11 @@ Documenter.doctest(BarnesDoubleGamma)
     end
 
     @testset "BDoubleGamma" begin
-        bdg = BDoubleGamma(sqrt(big(3)))
+        bdg = BDoubleGamma(sqrt(3))
+        bdg_big = BDoubleGamma(sqrt(big(3)))
         
         @test bdg(1) ≈ 1
-        @test bdg(big(1)) ≈ 1
+        @test bdg_big(big"1.") ≈ 1
 
         @test isapprox(barnesdoublegamma(1, sqrt(3)), 1)
         @test isapprox(barnesdoublegamma(big(1), sqrt(big(3))), 1)

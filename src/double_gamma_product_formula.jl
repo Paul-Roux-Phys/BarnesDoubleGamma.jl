@@ -61,6 +61,7 @@ end
 LogBDoubleGamma(τ::T) where {T} = LogBDoubleGamma(BDGCache(τ))
 (f::LogBDoubleGamma)(z::Complex) = _log_barnesdoublegamma(z, f.cache)
 (f::LogBDoubleGamma)(x::Real) = f(complex(x))
+(f::LogBDoubleGamma{T})(x::Real) where {T<:Real} = real(f(complex(x)))
 (f::LogBDoubleGamma)(x::Int) = f(float(x))
 
 struct BDoubleGamma{T}
@@ -214,21 +215,6 @@ function polynomial_Pns(M, τ_pows::Vector{T}, τp1_pows, factorials)::Matrix{T}
     return coeffs
 end
 
-# @memoize factorial_big(n) = if n < 21 factorial(n) else factorial(big(n)) end
-
-# @memoize function polynomial_Pn_coeff(n, j, τ::T)::T where {T}
-#     n == 1 && j == 0 && return one(τ)/6
-#     j >= n && return zero(τ)
-#     j == n-1 && return one(τ)/(factorial_big(n+2))
-#     return -sum(
-#         ((1 + τ)^(k + 2) - 1 - τ^(k + 2)) / factorial_big(k + 2) / τ *
-#         polynomial_Pn_coeff(n - k, j, τ)
-#         for k in 1:n-1-j
-#     )
-# end
-
-# polynomial_Pn(n, τ) = [polynomial_Pn_coeff(n, j, τ) for j in 0:n-1]
-
 function rest_RMN(M, N, z, cache::BDGCache{T})::T where {T}
     τ = cache.τ
     coeffs_sum = zeros(typeof(z), M + 1)
@@ -244,117 +230,69 @@ function _log_barnesdoublegamma(z::Complex, cache::BDGCache)
     return log_Barnes_GN(N, z, cache) + z^3*rest_RMN(M, N, z, cache)
 end
 
-# function _log_barnesdoublegamma(z::Complex, τ::T) where {T<:Complex}
-#     cache = BDGCache(τ)
-#     return _log_barnesdoublegamma(z, cache)
-# end
+"""
+    log_barnesdoublegamma(z, τ)
 
-# _log_barnesdoublegamma(z::Real, τ::Real) =
-#     real(_log_barnesdoublegamma(complex(z), complex(τ)))
+Logarithm of Barne's G-function ``\\log(G(z; τ))``.
+Can get very expensive for high precision.
 
-# _log_barnesdoublegamma(z, τ::Complex) =
-#     _log_barnesdoublegamma(complex(z), complex(τ))
+# Examples
 
-# _log_barnesdoublegamma(z::Complex, τ) =
-#     _log_barnesdoublegamma(complex(z), complex(τ))
+```jldoctest
+julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ)
+-3.5564013784958066e-9
 
-# """
-#     log_barnesdoublegamma(z, τ)
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ)
+0.293394920968626643183216869255154162603276275448888004730390602371621786480874
+```
+"""
+log_barnesdoublegamma(z, τ) = LogBDoubleGamma(τ)(z)
 
-# Logarithm of Barne's G-function ``\\log(G(z; τ))``.
-# Can get very expensive for high precision.
+"""
+    barnesdoublegamma(z, τ)
 
-# # Examples
+Barne's G-function ``G(z, τ)``.
+Can get very expensive for high precision.
 
-# ```jldoctest
-# julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ)
-# -3.5564013784958066e-9
+# Examples
 
-# julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ)
-# 0.293394920968626643183216869255154162603276275448888004730390602371621786480874
-# ```
-# """
-# log_barnesdoublegamma(z::Number, τ::Number) = _log_barnesdoublegamma(float(z), float(τ))
+```jldoctest
+julia> z = big"1"; τ = sqrt(big"3"); barnesdoublegamma(z, τ)
+0.9999999999999999999999999999999999999999999999265240691883395187060685710095162
 
-# """
-#     barnesdoublegamma(z, τ)
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
+1.340972263940081256497568500074283394055091822104168575112011391955491855627026
 
-# Barne's G-function ``G(z, τ)``.
-# Can get very expensive for high precision.
+julia> z = big(sqrt(3)); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
+1.488928335365086422942328604671778776079655676458875630387076246079377268516627
+```
+"""
+barnesdoublegamma(z, τ) = BDoubleGamma(τ)(z)
+ 
+"""
+    loggamma2(w, β)
 
-# # Examples
+Logarithm of the ``Γ_2(w, β)`` function.
+"""
+loggamma2(w, β) = LogGamma2(β)(w)
 
-# ```jldoctest
-# julia> z = big"1"; τ = sqrt(big"3"); barnesdoublegamma(z, τ)
-# 0.9999999999999999999999999999999999999999999999265240691883395187060685710095162
+"""
+    gamma2(w, β)
 
-# julia> z = sqrt(big"2"); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
-# 1.340972263940081256497568500074283394055091822104168575112011391955491855627026
+``Γ_2(w, β)`` function.
+"""
+gamma2(w, β) = exp(loggamma2(w, β))
 
-# julia> z = big(sqrt(3)); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
-# 1.488928335365086422942328604671778776079655676458875630387076246079377268516627
-# ```
-# """
-# barnesdoublegamma(z, τ) =
-#     exp(log_barnesdoublegamma(z, τ))
+"""
+        logdoublegamma(w, β)
 
-# function barnesdoublegamma(z, τ)
-#     if tol !== missing
-#         exp(log_barnesdoublegamma(z, τ, tol))
-#     else
-#         exp(log_barnesdoublegamma(z, τ))
-#     end
-# end
+Compute the logarithm of the double gamma function ``Γ_β(w, β)``.
+"""
+logdoublegamma(w, β) = loggamma2(w, β) - loggamma2((β+1/β)/2, β)
 
-# function loggamma2(w, β::LogGamma2)
-#     l = _log_barnesdoublegamma(w / β, β.cache)
-#     return w/(2*β)*log(2*oftype(β, π)) + (w/2*(w-β-1/β)+1)*log(β) - l
-# end
+"""
+        doublegamma(w, β)
 
-# """
-#     loggamma2(w, β)
-
-# Logarithm of the ``Γ_2(w, β)`` function.
-# """
-# function loggamma2(w, β)
-#     β = real(β-1/β) < 0 ? 1/β : β # change β -> 1/β if needed
-#     l = log_barnesdoublegamma(w / β, 1 / β^2)
-#     return w/(2*β)*log(2*oftype(β, π)) + (w/2*(w-β-1/β)+1)*log(β) - l
-# end
-
-# function gamma2(w, β::Gamma2{T}) where {T}
-#     β = LogGamma2{T}(β.cache, β.β)
-#     return exp(loggamma2(w, β))
-# end
-
-# """
-#     gamma2(w, β)
-
-# ``Γ_2(w, β)`` function.
-# """
-# function gamma2(w, β)
-#     return exp(loggamma2(w, β))
-# end
-
-# function logdoublegamma(w, β::LogDoubleGamma{T}) where {T}
-#     lg2 = LogGamma2{T}(β.cache, β.β)
-#     return loggamma2(w, lg2) - loggamma2(
-# end
-
-# """
-#         logdoublegamma(w, β)
-
-# Compute the logarithm of the double gamma function ``Γ_β(w, β)``.
-# """
-# function logdoublegamma(w, β)
-#     return loggamma2(w, β) - loggamma2((β+1/β)/2, β)
-# end
-
-# """
-#         doublegamma(w, β)
-
-# Compute the double gamma function ``Γ_β(w)``.
-# """
-# function doublegamma(w, β)
-#     exp(logdoublegamma(w, β))
-# end
+Compute the double gamma function ``Γ_β(w)``.
+"""
+doublegamma(w, β) = exp(logdoublegamma(w, β))
