@@ -62,7 +62,7 @@ LogBDoubleGamma(τ::T) where {T} = LogBDoubleGamma(BDGCache(τ))
 (f::LogBDoubleGamma)(z::Complex) = _log_barnesdoublegamma(z, f.cache)
 (f::LogBDoubleGamma)(x::Real) = f(complex(x))
 (f::LogBDoubleGamma{T})(x::Real) where {T<:Real} = real(f(complex(x)))
-(f::LogBDoubleGamma)(x::Int) = f(float(x))
+(f::LogBDoubleGamma)(x::Union{Int, BigInt, Complex{Int}, Complex{BigInt}}) = f(float(x))
 
 struct BDoubleGamma{T}
     logBDG::LogBDoubleGamma{T}
