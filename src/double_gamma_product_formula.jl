@@ -19,7 +19,6 @@ struct BDGCache{T}
     polynomial_Pns::Matrix{T}
     modularcoeff_a::T
     modularcoeff_b::T
-    
 end
 
 function BDGCache(τ::T) where {T <: Complex}
@@ -61,13 +60,15 @@ end
 
 LogBDoubleGamma(τ::T) where {T} = LogBDoubleGamma(BDGCache(τ))
 (f::LogBDoubleGamma)(z::Complex) = _log_barnesdoublegamma(z, f.cache)
+(f::LogBDoubleGamma)(x::Real) = f(complex(x))
+(f::LogBDoubleGamma)(x::Int) = f(float(x))
 
 struct BDoubleGamma{T}
     logBDG::LogBDoubleGamma{T}
 end
 
 BDoubleGamma(τ::T) where {T} = BDoubleGamma(LogBDoubleGamma(τ))
-(f::BDoubleGamma)(z::Complex) = exp(f.logBDG(z))
+(f::BDoubleGamma)(z) = exp(f.logBDG(z))
 
 #===============================================================================
 Barnes Gamma2 Γ_2(w, β)
@@ -80,7 +81,7 @@ end
 function LogGamma2(β::T) where {T}
     β = real(β - 1/β) < 0 ? inv(β) : β
     τ = inv(β^2)
-    return LogGamma2(LogBDoubleGamma(τ), β)
+    return LogGamma2{complex(T)}(LogBDoubleGamma(τ), β)
 end
 
 function (f::LogGamma2)(w)
@@ -93,7 +94,7 @@ struct Gamma2{T}
     loggamma2::LogGamma2{T}
 end
 
-Gamma2(β::T) where {T} = Gamma2{T}(LogGamma2(β))
+Gamma2(β::T) where {T} = Gamma2{complex(T)}(LogGamma2(β))
 
 #===============================================================================
 Double Gamma Γ_β(w)
@@ -106,7 +107,7 @@ end
 function LogDoubleGamma(β::T) where {T}
     lg = LogGamma2(β)
     refval = lg((β + inv(β)) / 2)
-    return LogDoubleGamma{T}(lg, refval)
+    return LogDoubleGamma{complex(T)}(lg, refval)
 end
 
 (f::LogDoubleGamma)(w) = f.loggamma2(w) - f.refval
@@ -115,8 +116,8 @@ struct DoubleGamma{T}
     inner::LogDoubleGamma{T}
 end
 
-DoubleGamma(β::T) where {T} = DoubleGamma{T}(LogDoubleGamma(β))
-(f::DoubleGamma)(w::T) where {T} = exp(f.inner(w))
+DoubleGamma(β::T) where {T} = DoubleGamma{complex(T)}(LogDoubleGamma(β))
+(f::DoubleGamma)(w) = exp(f.inner(w))
 
 #===============================================================================
 Implementation

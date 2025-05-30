@@ -1,24 +1,27 @@
 module BarnesDoubleGamma
 
-using  Memoization, # cache intermediary results
-    QuadGK, # numerical integration
-    DoubleFloats # 30-digit floats, fast.
+using QuadGK, # numerical integration
+    SpecialFunctions,
+    Arblib
+    # DoubleFloats
 
-import Base: precision
+# we extend these methods to Complex{BigFloat} using Arblib
+import SpecialFunctions: loggamma, gamma, digamma, trigamma, polygamma
 
-export Double64, ComplexDF64,
-    loggamma,
+# generic-typed gamma functions
+export loggamma,
     gamma,
     trigamma,
-    polygamma,      # generic-typed gamma functions
+    polygamma,      
     digamma_reg
 
-export log_barnesdoublegamma,
-       barnesdoublegamma,
-       loggamma2,
-       gamma2,
-       logdoublegamma,
-       doublegamma
+# Double Gamma functions
+export LogBDoubleGamma,
+       BDoubleGamma,
+       LogGamma2,
+       Gamma2,
+       LogDoubleGamma,
+       DoubleGamma
 
 include("gamma_functions.jl")
 include("double_gamma_product_formula.jl")
