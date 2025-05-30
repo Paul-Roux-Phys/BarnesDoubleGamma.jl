@@ -214,20 +214,20 @@ function polynomial_Pns(M, τ_pows::Vector{T}, τp1_pows, factorials)::Matrix{T}
     return coeffs
 end
 
-@memoize factorial_big(n) = if n < 21 factorial(n) else factorial(big(n)) end
+# @memoize factorial_big(n) = if n < 21 factorial(n) else factorial(big(n)) end
 
-@memoize function polynomial_Pn_coeff(n, j, τ::T)::T where {T}
-    n == 1 && j == 0 && return one(τ)/6
-    j >= n && return zero(τ)
-    j == n-1 && return one(τ)/(factorial_big(n+2))
-    return -sum(
-        ((1 + τ)^(k + 2) - 1 - τ^(k + 2)) / factorial_big(k + 2) / τ *
-        polynomial_Pn_coeff(n - k, j, τ)
-        for k in 1:n-1-j
-    )
-end
+# @memoize function polynomial_Pn_coeff(n, j, τ::T)::T where {T}
+#     n == 1 && j == 0 && return one(τ)/6
+#     j >= n && return zero(τ)
+#     j == n-1 && return one(τ)/(factorial_big(n+2))
+#     return -sum(
+#         ((1 + τ)^(k + 2) - 1 - τ^(k + 2)) / factorial_big(k + 2) / τ *
+#         polynomial_Pn_coeff(n - k, j, τ)
+#         for k in 1:n-1-j
+#     )
+# end
 
-polynomial_Pn(n, τ) = [polynomial_Pn_coeff(n, j, τ) for j in 0:n-1]
+# polynomial_Pn(n, τ) = [polynomial_Pn_coeff(n, j, τ) for j in 0:n-1]
 
 function rest_RMN(M, N, z, cache::BDGCache{T})::T where {T}
     τ = cache.τ
