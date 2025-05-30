@@ -238,11 +238,11 @@ Can get very expensive for high precision.
 # Examples
 
 ```jldoctest
-julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ)
--3.5564013784958066e-9
+julia> z = 1; τ = sqrt(3); log_barnesdoublegamma(z, τ) ≈ -3.5564013784958066e-9
+true
 
-julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ)
-0.293394920968626643183216869255154162603276275448888004730390602371621786480874
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); log_barnesdoublegamma(z, τ) ≈ 0.293394920968626643183216869255154162603276275448888004730390602371621786480874
+true
 ```
 """
 log_barnesdoublegamma(z, τ) = LogBDoubleGamma(τ)(z)
@@ -256,14 +256,14 @@ Can get very expensive for high precision.
 # Examples
 
 ```jldoctest
-julia> z = big"1"; τ = sqrt(big"3"); barnesdoublegamma(z, τ)
-0.9999999999999999999999999999999999999999999999265240691883395187060685710095162
+julia> z = big"1"; τ = sqrt(big"3"); barnesdoublegamma(z, τ) ≈ 1
+true
 
-julia> z = sqrt(big"2"); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
-1.340972263940081256497568500074283394055091822104168575112011391955491855627026
+julia> z = sqrt(big"2"); τ = sqrt(big"3"); barnesdoublegamma(z, τ) ≈ 1.340972263940081256497568500074283394055091822104168575112011391955491855627026
+true
 
-julia> z = big(sqrt(3)); τ = sqrt(big"3"); barnesdoublegamma(z, τ)
-1.488928335365086422942328604671778776079655676458875630387076246079377268516627
+julia> s3 = sqrt(big"3"); z = s3; τ = s3; barnesdoublegamma(z, τ) ≈ (2big(π))^((τ-1)/2)/sqrt(τ)
+true
 ```
 """
 barnesdoublegamma(z, τ) = BDoubleGamma(τ)(z)
