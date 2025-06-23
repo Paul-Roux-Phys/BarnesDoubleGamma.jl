@@ -12,6 +12,7 @@ struct BDGCache{T}
     logτ::T
     mτ_pows::Vector{T}
     mτp1_pows::Vector{T}
+    Nmτ_pows::Vector{T}
     loggammas::Vector{T}
     digammas::Vector{T}
     trigammas::Vector{T}
@@ -26,13 +27,16 @@ function BDGCache(τ::T) where {T <: Complex}
     M = floor(Int, 0.5/log(20)*d)
     N = 50*M
     logτ = log(τ)
-    mτ_pows = zeros(T, M+2)
-    mτp1_pows = zeros(T, M+2)
+    mτ_pows = Vector{T}(undef, M+2)
+    mτp1_pows = Vector{T}(undef, M+2)
+    Nmτ_pows = Vector{T}(undef, M+2)
     mτ_pows[1] = -τ
     mτp1_pows[1] = -τ + 1
+    Nmτ_pows[1] = 1
     for i in 2:M+2
         mτ_pows[i] = -τ * mτ_pows[i-1]
         mτp1_pows[i] = (-τ+1) * mτp1_pows[i-1]
+        Nmτ_pows[i] = - 1 / (N * τ) * Nmτ_pows[i-1]
     end
     loggammas = [loggamma(m*τ) for m in 1:N]
     digammas = [digamma(m*τ) for m in 1:N]
@@ -43,7 +47,7 @@ function BDGCache(τ::T) where {T <: Complex}
     modb = modularcoeff_b(τ)
     return BDGCache{T}(
         M, N,
-        τ, logτ, mτ_pows, mτp1_pows,
+        τ, logτ, mτ_pows, mτp1_pows, Nmτ_pows,
         loggammas, digammas, trigammas,
         factorials, poly, moda, modb
     )
@@ -76,18 +80,26 @@ Barnes Gamma2 Γ_2(w, β)
 struct LogGamma2{T}
     logBDG::LogBDoubleGamma{T}
     β::T
+    invβ::T
+    logβ::T
+    c1::T
+    c2::T
 end
 
 function LogGamma2(β::T) where {T}
     β = real(β - 1/β) < 0 ? inv(β) : β
-    τ = inv(β^2)
-    return LogGamma2{complex(T)}(LogBDoubleGamma(τ), β)
+    invβ = 1/β
+    τ = invβ^2
+    logβ = log(β)
+    c1 = 1/2*invβ*(log(2*convert(T, π)))
+    c2 =  -β-invβ
+    return LogGamma2{complex(T)}(LogBDoubleGamma(τ), β, invβ, logβ, c1, c2)
 end
 
 function (f::LogGamma2)(w)
     β = f.β
     l = f.logBDG(w / β) # log_barnesdoublegamma(w / β, 1/β^2)
-    return w/(2*β)*log(2*oftype(β, π)) + (w/2*(w-β-1/β)+1)*log(β) - l
+    return w * f.c1 + (w/2*(w+f.c2)+1)*log(β) - l
 end 
 
 struct Gamma2{T}
@@ -178,17 +190,21 @@ function modularcoeff_b(τ)
     return -τ*log(τ) - τ^2*modD
 end
 
-function log_Barnes_GN(N, z, cache::BDGCache{T}) where {T}
-    # keep only the minimum precision
+function log_Barnes_GN(z, cache::BDGCache{T}) where {T}
     #compute the sum
+    N = cache.N
     τ = cache.τ
     r = zero(T)
     r -= cache.logτ + loggamma(z)
     r += cache.modularcoeff_a * z / cache.τ + cache.modularcoeff_b * z^2 / (2 * τ^2)
+    lgams = Vector{T}(undef, N)
+    Threads.@threads for m in 1:N
+        lgams[m] = loggamma(z + m * τ)
+    end
     for m in 1:N
         d = cache.digammas[m]
         t = cache.trigammas[m]
-        r += cache.loggammas[m] - loggamma(z + m * τ) + z * d + z^2 / 2 * t
+        r += cache.loggammas[m] - lgams[m] + z * d + z^2 / 2 * t
     end
     return r
 end
@@ -221,12 +237,15 @@ function rest_RMN(z, cache::BDGCache{T})::T where {T}
     for k in 2:M
         coeffs_sum[k+1] = cache.factorials[k - 1] * evalpoly(z, cache.polynomial_Pns[k])
     end
-    return evalpoly(1 / (N * mτ), coeffs_sum) / mτ
+    return sum(
+        cache.Nmτ_pows[i] * coeffs_sum[i]
+        for i in eachindex(coeffs_sum)
+    ) / mτ
 end
 
 function _log_barnesdoublegamma(z::Complex, cache::BDGCache)
-    M, N = cache.M, cache.N
-    return log_Barnes_GN(N, z, cache) + z^3*rest_RMN(z, cache)
+    N = cache.N
+    return log_Barnes_GN(z, cache) + z^3*rest_RMN(z, cache)
 end
 
 """
