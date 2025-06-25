@@ -66,6 +66,15 @@ LogBDoubleGamma(τ::T) where {T} = LogBDoubleGamma(BDGCache(τ))
 (f::LogBDoubleGamma)(z::Complex) = _log_barnesdoublegamma(z, f.cache)
 (f::LogBDoubleGamma)(x::Real) = f(complex(x))
 (f::LogBDoubleGamma)(x::Union{Int, BigInt, Complex{Int}, Complex{BigInt}}) = f(float(x))
+function (f::LogBDoubleGamma)(xs::AbstractVector{<:Complex})
+    cache = f.cache
+    T = typeof(f).parameters[1]
+    res = Vector{T}(undef, length(xs))
+    Threads.@threads for i in eachindex(xs)
+        @inbounds res[i] = _log_barnesdoublegamma(xs[i], cache)
+    end
+    return res
+end
 
 struct BDoubleGamma{T}
     logBDG::LogBDoubleGamma{T}
@@ -73,6 +82,7 @@ end
 
 BDoubleGamma(τ::T) where {T} = BDoubleGamma(LogBDoubleGamma(τ))
 (f::BDoubleGamma)(z) = exp(f.logBDG(z))
+(f::BDoubleGamma)(z::AbstractVector) = exp.(f.logBDG(z))
 
 #===============================================================================
 Barnes Gamma2 Γ_2(w, β)
@@ -98,8 +108,9 @@ end
 
 function (f::LogGamma2)(w)
     β = f.β
-    l = f.logBDG(w / β) # log_barnesdoublegamma(w / β, 1/β^2)
-    return w * f.c1 + (w/2*(w+f.c2)+1)*log(β) - l
+    l = f.logBDG.(w ./ β) # log_barnesdoublegamma(w / β, 1/β^2)
+    logβ = f.logβ
+    @. return w * f.c1 + (w / 2 * (w + f.c2) + 1) * logβ - l
 end 
 
 struct Gamma2{T}
@@ -107,6 +118,8 @@ struct Gamma2{T}
 end
 
 Gamma2(β::T) where {T} = Gamma2{complex(T)}(LogGamma2(β))
+(f::Gamma2)(w) = exp(f.loggamma2(w))
+(f::Gamma2)(w::AbstractVector) = exp.(f.loggamma2(w))
 
 #===============================================================================
 Double Gamma Γ_β(w)
@@ -123,6 +136,7 @@ function LogDoubleGamma(β::T) where {T}
 end
 
 (f::LogDoubleGamma)(w) = f.loggamma2(w) - f.refval
+(f::LogDoubleGamma)(w::AbstractVector) = f.loggamma2(w) .- f.refval
 
 struct DoubleGamma{T}
     inner::LogDoubleGamma{T}
@@ -130,6 +144,7 @@ end
 
 DoubleGamma(β::T) where {T} = DoubleGamma{complex(T)}(LogDoubleGamma(β))
 (f::DoubleGamma)(w) = exp(f.inner(w))
+(f::DoubleGamma)(w::AbstractVector) = exp.(f.inner(w))
 
 #===============================================================================
 Implementation
@@ -198,7 +213,7 @@ function log_Barnes_GN(z, cache::BDGCache{T}) where {T}
     r -= cache.logτ + loggamma(z)
     r += cache.modularcoeff_a * z / cache.τ + cache.modularcoeff_b * z^2 / (2 * τ^2)
     lgams = Vector{T}(undef, N)
-    Threads.@threads for m in 1:N
+    for m in 1:N
         lgams[m] = loggamma(z + m * τ)
     end
     for m in 1:N
@@ -248,6 +263,11 @@ function _log_barnesdoublegamma(z::Complex, cache::BDGCache)
     return log_Barnes_GN(z, cache) + z^3*rest_RMN(z, cache)
 end
 
+function _log_barnesdoublegamma(zs::AbstractArray{<:Complex}, cache::BDGCache)
+    N = cache.N
+    return [_log_barnesdoublegamma(z, cache) for z in zs]
+end
+   
 """
     log_barnesdoublegamma(z, τ)
 
