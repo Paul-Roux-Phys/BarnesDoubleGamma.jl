@@ -17,13 +17,15 @@ export loggamma,
 
 # Double Gamma functions
 export LogBDoubleGamma, log_barnesdoublegamma,
-       BDoubleGamma, barnesdoublegamma,
-       LogGamma2, loggamma2,
-       Gamma2, gamma2,
-       LogDoubleGamma, logdoublegamma,
-       DoubleGamma, doublegamma
+    BDoubleGamma, barnesdoublegamma,
+    LogGamma2, loggamma2,
+    Gamma2, gamma2,
+    LogDoubleGamma, logdoublegamma,
+    DoubleGamma, doublegamma,
+    DSine
 
 include("gamma_functions.jl")
 include("double_gamma_product_formula.jl")
+include("doublesine_productformula.jl")
 
 end

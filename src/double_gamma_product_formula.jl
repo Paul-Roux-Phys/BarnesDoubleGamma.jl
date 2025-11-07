@@ -23,6 +23,9 @@ struct BDGCache{T}
 end
 
 function BDGCache(τ::T) where {T <: Complex}
+    if real(τ) <= 0
+        throw(DomainError(τ, "Accepted range is Re(τ) > 0"))
+    end
     d = precision(real(τ))
     M = floor(Int, 0.5/log(20)*d)
     N = 50*M
