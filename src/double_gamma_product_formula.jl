@@ -10,9 +10,9 @@ struct BDGCache{T}
     N::Int
     τ::T
     logτ::T
-    mτ_pows::Vector{T}
-    mτp1_pows::Vector{T}
-    Nmτ_pows::Vector{T}
+    mτ_pows::Vector{T} # (-τ)^n
+    mτp1_pows::Vector{T} # (-τ+1)^n
+    Nmτ_pows::Vector{T} # (N - τ)^n
     loggammas::Vector{T}
     digammas::Vector{T}
     trigammas::Vector{T}
@@ -22,7 +22,7 @@ struct BDGCache{T}
     modularcoeff_b::T
 end
 
-function BDGCache(τ::T) where {T <: Complex}
+function BDGCache(τ::T) where {T}
     if real(τ) <= 0
         throw(DomainError(τ, "Accepted range is Re(τ) > 0"))
     end
