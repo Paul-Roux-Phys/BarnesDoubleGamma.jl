@@ -216,6 +216,8 @@ function log_Barnes_GN(z, cache::BDGCache{T}) where {T}
     r -= cache.logτ + loggamma(z)
     r += cache.modularcoeff_a * z / cache.τ + cache.modularcoeff_b * z^2 / (2 * τ^2)
     lgams = Vector{T}(undef, N)
+    # the following loop is by far the bottleneck of the program, by one order of magnitude.
+    # since this is the only part that can't be pre-computed easily (depends on z and τ)
     for m in 1:N
         lgams[m] = loggamma(z + m * τ)
     end
@@ -337,3 +339,7 @@ logdoublegamma(w, β) = loggamma2(w, β) - loggamma2((β+1/β)/2, β)
 Compute the double gamma function ``Γ_β(w)``.
 """
 doublegamma(w, β) = exp(logdoublegamma(w, β))
+
+function Base.show(io::IO, DG::DoubleGamma)
+    print(io, "Γ(β = $(DG.inner.loggamma2.β))")
+end
