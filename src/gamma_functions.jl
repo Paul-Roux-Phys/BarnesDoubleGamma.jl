@@ -25,6 +25,9 @@ end
 # cotpi(x) = cot(π * x)
 cotpi(x) = cospi(x) / sinpi(x)
 
+isapproxint(z::Acb) = Arblib.contains_int(z)
+isapproxint(z) = z % 1 == 0
+
 """
     digamma_reg(z)
 
@@ -44,7 +47,17 @@ julia> digamma_reg(-1)
 function digamma_reg(z)
     if real(z) > 0
         return digamma(z)
-    elseif isreal(z) && real(z) <= 0 && real(z)%1 == 0
+    elseif isreal(z) && real(z) <= 0 && real(z) % 1 == 0
+        return digamma(1-z)
+    else
+        return digamma(1-z) - oftype(z, π)*cotpi(z)
+    end
+end
+
+function digamma_reg(z::Acb)
+    if real(z) > 0
+        return digamma(z)
+    elseif isreal(z) && real(z) <= 0 && Arblib.contains_int(z)
         return digamma(1-z)
     else
         return digamma(1-z) - oftype(z, π)*cotpi(z)
