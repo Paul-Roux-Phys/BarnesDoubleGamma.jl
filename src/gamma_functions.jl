@@ -57,7 +57,7 @@ end
 function digamma_reg(z::Acb)
     if real(z) > 0
         return digamma(z)
-    elseif isreal(z) && real(z) <= 0 && Arblib.contains_int(z)
+    elseif real(z) <= 0 && Arblib.contains_int(z)
         return digamma(1-z)
     else
         return digamma(1-z) - oftype(z, π)*cotpi(z)
