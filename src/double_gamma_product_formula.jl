@@ -120,7 +120,7 @@ struct Gamma2
     loggamma2::LogGamma2
 end
 
-Gamma2(β) = Gamma2(LogGamma2(β))
+Gamma2(β::Number) = Gamma2(LogGamma2(β))
 (f::Gamma2)(w) = exp(f.loggamma2(w))
 (f::Gamma2)(w::AbstractVector) = exp.(f.loggamma2(w))
 
@@ -145,7 +145,7 @@ struct DoubleGamma
     inner::LogDoubleGamma
 end
 
-DoubleGamma(β) = DoubleGamma(LogDoubleGamma(β))
+DoubleGamma(β::Number) = DoubleGamma(LogDoubleGamma(β))
 (f::DoubleGamma)(w) = exp(f.inner(w))
 (f::DoubleGamma)(w::AbstractVector) = exp.(f.inner(w))
 
