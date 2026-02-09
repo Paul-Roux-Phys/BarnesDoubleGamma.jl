@@ -83,7 +83,7 @@ struct BDoubleGamma
     logBDG::LogBDoubleGamma
 end
 
-BDoubleGamma(τ) = BDoubleGamma(LogBDoubleGamma(τ))
+BDoubleGamma(τ::Number) = BDoubleGamma(LogBDoubleGamma(τ))
 (f::BDoubleGamma)(z) = exp(f.logBDG(z))
 (f::BDoubleGamma)(z::AbstractVector) = exp.(f.logBDG(z))
 
