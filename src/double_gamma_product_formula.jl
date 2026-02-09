@@ -132,7 +132,7 @@ struct LogDoubleGamma
     refval::Acb # value at (β + 1/β)/2
 end
 
-function LogDoubleGamma(β::Acb)
+function LogDoubleGamma(β::Number)
     lg = LogGamma2(β)
     refval = lg((β + inv(β)) / 2)
     return LogDoubleGamma(lg, refval)
