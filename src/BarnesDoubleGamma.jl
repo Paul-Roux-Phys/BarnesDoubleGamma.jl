@@ -12,8 +12,7 @@ import SpecialFunctions: loggamma, gamma, digamma, trigamma, polygamma
 export loggamma,
     gamma,
     trigamma,
-    polygamma,      
-    digamma_reg
+    polygamma
 
 # Double Gamma functions
 export LogBDoubleGamma, log_barnesdoublegamma,

@@ -17,9 +17,3 @@ true
 julia> gamma(0.5+0.1im) ≈ 1.697617826382886 - 0.33284283907262135im
 true
 ```
-
-The package also exports a regularised digamma function `digamma_reg`
-
-```@docs
-digamma_reg(z)
-```

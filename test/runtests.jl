@@ -13,12 +13,6 @@ Documenter.doctest(BarnesDoubleGamma)
 
 @testset "BarnesDoubleGamma.jl" begin
 
-    @testset "digamma_reg" begin
-        for n in 0:-1:-5
-            @test digamma_reg(n) == digamma_reg(-n+1)
-        end
-    end
-
     @testset "BDoubleGamma" begin
         bdg = BDoubleGamma(sqrt(3))
         lbdg = bdg.logBDG
