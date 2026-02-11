@@ -27,7 +27,7 @@ function BDGCache(τ::Acb)
         throw(DomainError(τ, "Accepted range is Re(τ) > 0"))
     end
     d = precision(real(τ))
-    M = 10
+    M = floor(Int, 0.5/log(20)*d)
     N = 50*M
     logτ = log(τ)
     mτ_pows = Vector{Acb}(undef, M+2)
@@ -222,27 +222,31 @@ function log_Barnes_GN(z, cache::BDGCache)
     #compute the sum
     N = cache.N
     τ = cache.τ
+    zsq2 = Arblib.sqr!(zero(z), z)
+    Arblib.div!(zsq2, zsq2, 2)
     res = zero(τ)
     buf = zero(τ)
     Arblib.lgamma!(res, z)
-    Arblib.sub!(res, res, cache.logτ)
-    res += cache.modularcoeff_a * z / cache.τ + cache.modularcoeff_b * z^2 / (2 * τ^2)
+    Arblib.add!(res, res, cache.logτ)
+    Arblib.neg!(res, res)
+    Arblib.div!(buf, z, cache.τ)
+    Arblib.addmul!(res, cache.modularcoeff_a, buf)
+    Arblib.sqr!(buf, τ)
+    Arblib.div!(buf, zsq2, buf)
+    Arblib.addmul!(res, cache.modularcoeff_b, buf)
+
     # the following loop is by far the bottleneck of the program, by one order of magnitude.
     # it is the only part that can't be pre-computed easily (depends on z and τ)
     # the bottleneck is the computation of loggamma(z + m τ)
-    # for m in 1:N
-    #     Arblib.lgamma!(lgams[m], z + m * τ)
-    # end
-
+    buf2 = zero(τ)
+    Arblib.set!(buf2, z)
     for m in 1:N
-        # d = cache.digammas[m]
-        # t = cache.trigammas[m]
-        Arblib.lgamma!(buf, z + m * τ)
+        Arblib.add!(buf2, buf2, τ)
+        Arblib.lgamma!(buf, buf2)
         Arblib.add!(res, res, cache.loggammas[m])
         Arblib.sub!(res, res, buf)
         Arblib.addmul!(res, z, cache.digammas[m])
-        Arblib.addmul!(res, z^2 / 2, cache.trigammas[m])
-        # res += cache.loggammas[m] - lgams[m] + z * d + z^2 / 2 * t
+        Arblib.addmul!(res, zsq2, cache.trigammas[m])
     end
     return res
 end
