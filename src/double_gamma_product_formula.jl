@@ -66,18 +66,9 @@ struct LogBDoubleGamma
 end
 
 LogBDoubleGamma(τ::Acb) = LogBDoubleGamma(BDGCache(τ))
-LogBDoubleGamma(τ::Complex) = LogBDoubleGamma(Acb(τ))
-(f::LogBDoubleGamma)(z::Union{Complex,Acb}) = _log_barnesdoublegamma(z, f.cache)
-(f::LogBDoubleGamma)(x::Real) = f(complex(x))
-(f::LogBDoubleGamma)(x::Union{Int, BigInt, Complex{Int}, Complex{BigInt}}) = f(float(x))
-function (f::LogBDoubleGamma)(xs::AbstractVector{<:Complex})
-    cache = f.cache
-    res = Vector{Acb}(undef, length(xs))
-    Threads.@threads for i in eachindex(xs)
-        @inbounds res[i] = _log_barnesdoublegamma(xs[i], cache)
-    end
-    return res
-end
+LogBDoubleGamma(τ::Number) = LogBDoubleGamma(Acb(τ))
+(f::LogBDoubleGamma)(z::Acb) = _log_barnesdoublegamma(z, f.cache)
+(f::LogBDoubleGamma)(z::Number) = f(Acb(z))
 
 struct BDoubleGamma
     logBDG::LogBDoubleGamma
@@ -85,7 +76,6 @@ end
 
 BDoubleGamma(τ::Number) = BDoubleGamma(LogBDoubleGamma(τ))
 (f::BDoubleGamma)(z) = exp(f.logBDG(z))
-(f::BDoubleGamma)(z::AbstractVector) = exp.(f.logBDG(z))
 
 #===============================================================================
 Barnes Gamma2 Γ_2(w, β)
@@ -122,7 +112,6 @@ end
 
 Gamma2(β::Number) = Gamma2(LogGamma2(β))
 (f::Gamma2)(w) = exp(f.loggamma2(w))
-(f::Gamma2)(w::AbstractVector) = exp.(f.loggamma2(w))
 
 #===============================================================================
 Double Gamma Γ_β(w)
@@ -139,7 +128,6 @@ function LogDoubleGamma(β::Number)
 end
 
 (f::LogDoubleGamma)(w) = f.loggamma2(w) - f.refval
-(f::LogDoubleGamma)(w::AbstractVector) = f.loggamma2(w) .- f.refval
 
 struct DoubleGamma
     inner::LogDoubleGamma
@@ -147,7 +135,6 @@ end
 
 DoubleGamma(β::Number) = DoubleGamma(LogDoubleGamma(β))
 (f::DoubleGamma)(w) = exp(f.inner(w))
-(f::DoubleGamma)(w::AbstractVector) = exp.(f.inner(w))
 
 #===============================================================================
 Implementation
@@ -220,28 +207,26 @@ end
 
 function log_Barnes_GN(z, cache::BDGCache)
     #compute the sum
-    N = cache.N
-    τ = cache.τ
     zsq2 = Arblib.sqr!(zero(z), z)
     Arblib.div!(zsq2, zsq2, 2)
-    res = zero(τ)
-    buf = zero(τ)
+    res = zero(cache.τ)
+    buf = zero(cache.τ)
     Arblib.lgamma!(res, z)
     Arblib.add!(res, res, cache.logτ)
     Arblib.neg!(res, res)
     Arblib.div!(buf, z, cache.τ)
     Arblib.addmul!(res, cache.modularcoeff_a, buf)
-    Arblib.sqr!(buf, τ)
+    Arblib.sqr!(buf, cache.τ)
     Arblib.div!(buf, zsq2, buf)
     Arblib.addmul!(res, cache.modularcoeff_b, buf)
 
     # the following loop is by far the bottleneck of the program, by one order of magnitude.
     # it is the only part that can't be pre-computed easily (depends on z and τ)
     # the bottleneck is the computation of loggamma(z + m τ)
-    buf2 = zero(τ)
+    buf2 = zero(cache.τ)
     Arblib.set!(buf2, z)
-    for m in 1:N
-        Arblib.add!(buf2, buf2, τ)
+    for m in 1:cache.N
+        Arblib.add!(buf2, buf2, cache.τ)
         Arblib.lgamma!(buf, buf2)
         Arblib.add!(res, res, cache.loggammas[m])
         Arblib.sub!(res, res, buf)
