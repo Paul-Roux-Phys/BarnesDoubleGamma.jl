@@ -103,9 +103,9 @@ LogGamma2(β::Number) = LogGamma2(Acb(β))
 
 function (f::LogGamma2)(w)
     β = f.β
-    l = f.logBDG.(w ./ β) # log_barnesdoublegamma(w / β, 1/β^2)
+    l = f.logBDG(w / β) # log_barnesdoublegamma(w / β, 1/β^2)
     logβ = f.logβ
-    @. return w * f.c1 + (w / 2 * (w + f.c2) + 1) * logβ - l
+    return w * f.c1 + (w / 2 * (w + f.c2) + 1) * logβ - l
 end 
 
 struct Gamma2
