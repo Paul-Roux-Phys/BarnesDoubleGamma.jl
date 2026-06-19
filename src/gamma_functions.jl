@@ -1,6 +1,6 @@
 import SpecialFunctions: loggamma, gamma, digamma, trigamma, polygamma
 
-if VERSION < 1.10
+if VERSION < v"1.10"
     for func in (:loggamma, :gamma)
         @eval function SpecialFunctions.$func(z::Complex{BigFloat})
             az = Acb(z, prec=precision(real(z)))
