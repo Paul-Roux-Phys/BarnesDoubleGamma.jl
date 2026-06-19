@@ -1,6 +1,16 @@
 import SpecialFunctions: loggamma, gamma, digamma, trigamma, polygamma
 
-for func in (:loggamma, :gamma, :digamma, :trigamma)
+if VERSION < 1.10
+    for func in (:loggamma, :gamma)
+        @eval function SpecialFunctions.$func(z::Complex{BigFloat})
+            az = Acb(z, prec=precision(real(z)))
+            res = SpecialFunctions.$func(az)
+            return Complex{BigFloat}(real(res), imag(res))
+        end
+    end
+end
+
+for func in (:digamma, :trigamma)
     @eval function SpecialFunctions.$func(z::Complex{BigFloat})
         az = Acb(z, prec=precision(real(z)))
         res = SpecialFunctions.$func(az)
